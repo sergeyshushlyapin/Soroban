@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections;
-using System.IO;
 using System.Linq;
 
 namespace Soroban.App
@@ -9,28 +8,79 @@ namespace Soroban.App
     {
         private readonly int[] nums;
         private readonly IEnumerator enumerator;
-        private TextWriter textWriter;
+        private IOutput _numberResultWriter;
+        private IOutput _successResultWriter;
+        private IOutput _failureResultWriter;
 
-        public Round(int[] nums)
+        public Round(int[] nums, IOutput output)
         {
             if (nums == null)
                 throw new ArgumentNullException(nameof(nums));
 
+            if (output == null)
+                throw new ArgumentNullException(nameof(output));
+
             this.nums = nums;
             this.enumerator = nums.GetEnumerator();
+
+            _numberResultWriter = new CompositeOutput(
+               new NumberTextOutput(output),
+                new SpeakerOutput(),
+                new DelayedOutput(500),
+                new CleaningOutput(),
+                new DelayedOutput(100));
+
+            _successResultWriter = new CompositeOutput(
+                new CleaningOutput(),
+                new ColoredTextOutput(
+                    ConsoleColor.Green,
+                    output));
+
+            _failureResultWriter = new CompositeOutput(
+                new CleaningOutput(),
+                new ColoredTextOutput(
+                    ConsoleColor.Red,
+                    output));
         }
 
-        public Round PrintNumbersTo(TextWriter @out)
+        public IOutput NumberResultWriter
         {
-            if (@out == null)
-                throw new ArgumentNullException(nameof(@out));
+            get { return _numberResultWriter; }
+            set
+            {
+                if (value == null)
+                    throw new ArgumentNullException(nameof(value));
+                _numberResultWriter = value;
+            }
+        }
 
-            this.textWriter = @out;
+        public IOutput SuccessResultWriter
+        {
+            get { return _successResultWriter; }
+            set
+            {
+                if (value == null)
+                    throw new ArgumentNullException(nameof(value));
+                _successResultWriter = value;
+            }
+        }
 
+        public IOutput FailureResultWriter
+        {
+            get { return _failureResultWriter; }
+            set
+            {
+                if (value == null)
+                    throw new ArgumentNullException(nameof(value));
+                _failureResultWriter = value;
+            }
+        }
+
+        public Round PrintNumbers()
+        {
             while (this.enumerator.MoveNext())
             {
-                @out.WriteLine(this.enumerator.Current);
-                //Thread.Sleep(1000);
+                NumberResultWriter.Write(this.enumerator.Current);
             }
 
             return this;
@@ -43,12 +93,18 @@ namespace Soroban.App
 
             int result;
             if (!int.TryParse(answer, out result))
-                throw new ArgumentException();
+            {
+                FailureResultWriter.Write(answer);
+                return;
+            }
 
-            textWriter.WriteLine(
-                this.nums.Sum() == result
-                    ? "Correct!"
-                    : "Nope!");
+            if (this.nums.Sum() != result)
+            {
+                FailureResultWriter.Write(answer);
+                return;
+            }
+
+            SuccessResultWriter.Write(answer);
         }
     }
 }

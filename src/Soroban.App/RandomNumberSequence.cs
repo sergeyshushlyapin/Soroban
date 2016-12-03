@@ -4,15 +4,15 @@ namespace Soroban.App
 {
     public class RandomNumberSequence
     {
-        public RandomNumberSequence()
+        public RandomNumberSequence(int min, int max)
         {
             var random = new Random();
             this.Nums = new[]
             {
-                random.Next(0, 5),
-                random.Next(0, 5),
-                random.Next(0, 5),
-                random.Next(0, 5),
+                random.Next(min, max),
+                random.Next(min, max),
+                random.Next(min, max),
+                random.Next(min, max),
             };
         }
 

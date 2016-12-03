@@ -13,35 +13,127 @@ namespace Soroban.UnitTests
         public void InstantiateWithNullNumbersThrows()
         {
             Assert.Throws<ArgumentNullException>(() =>
-                new Round(null));
+                new Round(null, new StubOutput()));
         }
 
         [Fact]
-        public void PrintNumbersToWithNullWriterThrows()
+        public void InstantiateWithNullOutputThrows()
         {
-            var sut = new Round(new int[0]);
             Assert.Throws<ArgumentNullException>(() =>
-                sut.PrintNumbersTo(null));
+                new Round(new int[0], null));
+        }
+
+        [Fact]
+        public void NumberResultWriterReturnsDefaultValue()
+        {
+            var sut = new Round(new int[0], new StubOutput());
+            Assert.NotNull(sut.NumberResultWriter);
+        }
+
+        [Fact]
+        public void SuccessResultWriterReturnsDefaultValue()
+        {
+            var sut = new Round(new int[0], new StubOutput());
+            Assert.NotNull(sut.SuccessResultWriter);
+        }
+
+        [Fact]
+        public void FailureResultWriterReturnsDefaultValue()
+        {
+            var sut = new Round(new int[0], new StubOutput());
+            Assert.NotNull(sut.FailureResultWriter);
+        }
+
+        [Fact]
+        public void SetNumberResultWriterWithNullOutputThrows()
+        {
+            var sut = new Round(new int[0], new StubOutput());
+            Assert.Throws<ArgumentNullException>(() =>
+                sut.NumberResultWriter = null);
+        }
+
+        [Fact]
+        public void SetSuccessResultWriterWithNullOutputThrows()
+        {
+            var sut = new Round(new int[0], new StubOutput());
+            Assert.Throws<ArgumentNullException>(() =>
+                sut.SuccessResultWriter = null);
+        }
+
+        [Fact]
+        public void SetFailureResultWriterWithNullOutputThrows()
+        {
+            var sut = new Round(new int[] { }, new StubOutput());
+            Assert.Throws<ArgumentNullException>(() =>
+                sut.FailureResultWriter = null);
+        }
+
+        [Fact]
+        public void SetNumberResultWriterSetsCorrectValue()
+        {
+            var expected = new StubOutput();
+            var sut = new Round(new int[0], new StubOutput())
+            {
+                NumberResultWriter = expected
+            };
+
+            Assert.Same(expected, sut.NumberResultWriter);
+        }
+
+        [Fact]
+        public void SetSuccessResultWriterSetsCorrectValue()
+        {
+            var expected = new StubOutput();
+            var sut = new Round(new int[0], new StubOutput())
+            {
+                SuccessResultWriter = expected
+            };
+
+            Assert.Same(expected, sut.SuccessResultWriter);
+        }
+
+        [Fact]
+        public void SetFailureResultWriterSetsCorrectValue()
+        {
+            var expected = new StubOutput();
+            var sut = new Round(new int[0], new StubOutput())
+            {
+                FailureResultWriter = expected
+            };
+
+            Assert.Same(expected, sut.FailureResultWriter);
         }
 
         [Property]
-        public void PrintNumbersToOutput(int[] numbers)
+        public void PrintNumbersWritesToNumberResultWriter(int[] numbers)
         {
-            var expected = string.Join(
-                string.Empty,
-                numbers.Select(n => n + Environment.NewLine));
-            var output = new StringWriter();
-            var sut = new Round(numbers);
+            var expected = string.Join(string.Empty, numbers);
+            var output = new TextOutput(new StringWriter());
+            var sut = new Round(numbers, new StubOutput())
+            {
+                NumberResultWriter = output
+            };
 
-            sut.PrintNumbersTo(output);
+            sut.PrintNumbers();
 
             Assert.Equal(expected, output.ToString());
+        }
+
+        [Property]
+        public void PrintNumbersWritesReturnsRoundInstance(int[] numbers)
+        {
+            var sut = new Round(numbers, new StubOutput())
+            {
+                NumberResultWriter = new StubOutput()
+            };
+            var actual = sut.PrintNumbers();
+            Assert.Same(sut, actual);
         }
 
         [Fact]
         public void VerifyResultWithNullAnswerThrows()
         {
-            var sut = new Round(new int[0]);
+            var sut = new Round(new int[0], new StubOutput());
             Assert.Throws<ArgumentNullException>(() =>
                 sut.VerifyResult(null));
         }
@@ -49,7 +141,7 @@ namespace Soroban.UnitTests
         [Property(Skip = "Unclear how to ignore null.")]
         public void VerifyResultWithInvalidAnswerThrows(string answer)
         {
-            var sut = new Round(new int[0]);
+            var sut = new Round(new int[0], new StubOutput());
             Assert.Throws<ArgumentException>(() =>
                 sut.VerifyResult(answer));
         }
@@ -58,30 +150,43 @@ namespace Soroban.UnitTests
         public void VerifyResultWithCorrectAnswerPrintsSuccessMessage(
             int[] numbers)
         {
-            var validAnswer = numbers.Sum().ToString();
-            var expected = "Correct!" + Environment.NewLine;
-            var output = new StringWriter();
-            var sut = new Round(numbers);
+            var expected = numbers.Sum().ToString();
+            var output = new TextOutput(new StringWriter());
+            var sut = new Round(numbers, new StubOutput())
+            {
+                NumberResultWriter = new StubOutput(),
+                SuccessResultWriter = output
+            };
 
-            sut.PrintNumbersTo(output)
-                .VerifyResult(validAnswer);
+            sut.PrintNumbers()
+                .VerifyResult(expected);
 
-            Assert.EndsWith(expected, output.ToString());
+            Assert.Equal(expected, output.ToString());
         }
 
         [Property]
         public void VerifyResultWithIncorrectAnswerPrintsFailureMessage(
             int[] numbers)
         {
-            var invalidAnswer = (numbers.Sum() - 1).ToString();
-            var expected = "Nope!" + Environment.NewLine;
-            var output = new StringWriter();
-            var sut = new Round(numbers);
+            var expected = (numbers.Sum() - 1).ToString();
+            var output = new TextOutput(new StringWriter());
+            var sut = new Round(numbers, new StubOutput())
+            {
+                NumberResultWriter = new StubOutput(),
+                FailureResultWriter = output
+            };
 
-            sut.PrintNumbersTo(output)
-                .VerifyResult(invalidAnswer);
+            sut.PrintNumbers()
+                .VerifyResult(expected);
 
-            Assert.EndsWith(expected, output.ToString());
+            Assert.Equal(expected, output.ToString());
+        }
+    }
+
+    public class StubOutput : IOutput
+    {
+        public void Write(object line)
+        {
         }
     }
 }
