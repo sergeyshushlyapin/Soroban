@@ -76,7 +76,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Soroban.App\Soroban.App.csproj">
+    <ProjectReference Include="..\..\src\Soroban.App\Soroban.App.csproj">
       <Project>{CBA3EB78-17F7-477A-BD87-2E77EA69D735}</Project>
       <Name>Soroban.App</Name>
     </ProjectReference>
