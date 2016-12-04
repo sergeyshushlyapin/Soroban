@@ -114,7 +114,7 @@ namespace Soroban.UnitTests
                 NumberResultWriter = output
             };
 
-            sut.PrintNumbers();
+            sut.ReciteNumbers();
 
             Assert.Equal(expected, output.ToString());
         }
@@ -126,7 +126,7 @@ namespace Soroban.UnitTests
             {
                 NumberResultWriter = new StubOutput()
             };
-            var actual = sut.PrintNumbers();
+            var actual = sut.ReciteNumbers();
             Assert.Same(sut, actual);
         }
 
@@ -158,7 +158,7 @@ namespace Soroban.UnitTests
                 SuccessResultWriter = output
             };
 
-            sut.PrintNumbers()
+            sut.ReciteNumbers()
                 .VerifyResult(expected);
 
             Assert.Equal(expected, output.ToString());
@@ -176,7 +176,7 @@ namespace Soroban.UnitTests
                 FailureResultWriter = output
             };
 
-            sut.PrintNumbers()
+            sut.ReciteNumbers()
                 .VerifyResult(expected);
 
             Assert.Equal(expected, output.ToString());

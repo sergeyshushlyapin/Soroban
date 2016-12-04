@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections;
+using System.Globalization;
 using System.Linq;
 
 namespace Soroban.App
 {
     public class Round
     {
-        private readonly int[] nums;
-        private readonly IEnumerator enumerator;
+        private readonly int[] _nums;
+        private readonly IEnumerator _enumerator;
         private IOutput _numberResultWriter;
         private IOutput _successResultWriter;
         private IOutput _failureResultWriter;
@@ -20,27 +21,33 @@ namespace Soroban.App
             if (output == null)
                 throw new ArgumentNullException(nameof(output));
 
-            this.nums = nums;
-            this.enumerator = nums.GetEnumerator();
+            this._nums = nums;
+            this._enumerator = nums.GetEnumerator();
+
+            var culture = CultureInfo.GetCultureInfo("uk-UA");
 
             _numberResultWriter = new CompositeOutput(
-               new NumberTextOutput(output),
-                new SpeakerOutput(),
-                new DelayedOutput(500),
+                new NumberTextOutput(output),
+                new NumberTextOutput(
+                    new Megaphone(
+                        culture)),
+                new OutputDelay(500),
                 new CleaningOutput(),
-                new DelayedOutput(100));
+                new OutputDelay(100));
 
             _successResultWriter = new CompositeOutput(
                 new CleaningOutput(),
-                new ColoredTextOutput(
+                new ColoredConsoleOutput(
                     ConsoleColor.Green,
-                    output));
+                    output),
+                new SpeechRecord("Ну ты крутяк! Так держать!", culture));
 
             _failureResultWriter = new CompositeOutput(
                 new CleaningOutput(),
-                new ColoredTextOutput(
+                new ColoredConsoleOutput(
                     ConsoleColor.Red,
-                    output));
+                    output),
+                new SpeechRecord("Неа. Чуть чуть не правильно.", culture));
         }
 
         public IOutput NumberResultWriter
@@ -76,11 +83,11 @@ namespace Soroban.App
             }
         }
 
-        public Round PrintNumbers()
+        public Round ReciteNumbers()
         {
-            while (this.enumerator.MoveNext())
+            while (this._enumerator.MoveNext())
             {
-                NumberResultWriter.Write(this.enumerator.Current);
+                NumberResultWriter.Write(this._enumerator.Current);
             }
 
             return this;
@@ -98,7 +105,7 @@ namespace Soroban.App
                 return;
             }
 
-            if (this.nums.Sum() != result)
+            if (this._nums.Sum() != result)
             {
                 FailureResultWriter.Write(answer);
                 return;

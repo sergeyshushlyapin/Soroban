@@ -68,6 +68,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="NumberTextOutputTest.cs" />
+    <Compile Include="TextOutputTest.cs" />
+    <Compile Include="CompositeOutputTest.cs" />
     <Compile Include="RoundTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
